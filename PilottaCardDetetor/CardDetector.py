@@ -4,8 +4,9 @@ import np
 
 
 suitImage = {}
+valueImage = {}
 
-def readSuitImage(path,label):
+def readTemplateImage(path,label,templateObj):
     img_find = cv2.imread(path)
     img_find = cv2.resize(img_find, (45,45), interpolation= cv2.INTER_LINEAR)
 
@@ -14,7 +15,7 @@ def readSuitImage(path,label):
     up_points = (find_w, find_h)
     (thresh, img_find_black) = cv2.threshold(img_find_gray, 127, 255, cv2.THRESH_BINARY)
     # img_find_black = (255-img_find_black)
-    suitImage[label] = {
+    templateObj[label] = {
         "img_find" : img_find,
         "img_find_gray" : cv2.cvtColor(img_find, cv2.COLOR_BGR2GRAY),
         "find_w" : find_w,
@@ -24,33 +25,70 @@ def readSuitImage(path,label):
     }
 
 
-testImages = ["testImages/AHeartpng.png","testImages/8Club.png","testImages/7Diamond.png","testImages/2Spades.jpeg"]
-readSuitImage("img/Clubs.png","Clubs");
-readSuitImage("img/Diamonds.png","Diamonds");
-readSuitImage("img/Spades.png","Spades");
-readSuitImage("img/Heart.png","Hearts");
+testImages = [
+    "testImages/KHeart.png",
+    "testImages/QDiamond.png",
+    "testImages/JSpade.png",
+    "testImages/10Heart.png",
+    "testImages/9Diamond.png",
+    "testImages/8Club.png",
+    "testImages/7Diamond.png",
+    "testImages/6Diamond.png",
+    "testImages/5Club.png",
+    "testImages/4Spade.png",
+    "testImages/3Diamond.png",
+    "testImages/2Spades.png",
+    "testImages/AHeart.png",
+]
+readTemplateImage("img/Clubs.png","Clubs",suitImage);
+readTemplateImage("img/Diamonds.png","Diamonds",suitImage);
+readTemplateImage("img/Spades.png","Spades",suitImage);
+readTemplateImage("img/Heart.png","Hearts",suitImage);
 
+readTemplateImage("img/Ace.png","Ace",valueImage);
+readTemplateImage("img/2.png","2",valueImage);
+readTemplateImage("img/3.png","3",valueImage);
+readTemplateImage("img/4.png","4",valueImage);
+readTemplateImage("img/5.png","5",valueImage);
+readTemplateImage("img/6.png","6",valueImage);
+readTemplateImage("img/7.png","7",valueImage);
+readTemplateImage("img/8.png","8",valueImage);
+readTemplateImage("img/9.png","9",valueImage);
+readTemplateImage("img/10.png","10",valueImage);
+readTemplateImage("img/J.png","J",valueImage);
+readTemplateImage("img/Q.png","Q",valueImage);
+readTemplateImage("img/K.png","K",valueImage);
 
-for imgPath in testImages:
+counterIndex = 459
+
+def getGuess(imgPath,templateObj):
+
     img = cv2.imread(imgPath)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    # (thresh, img_black_or) = cv2.threshold(img_gray, 100, 255, cv2.THRESH_BINARY)
+
     (thresh, img_black) = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY)
-    ret , thrash = cv2.threshold(img_gray, 127 , 255, cv2.CHAIN_APPROX_NONE)
+    ret , thrash = cv2.threshold(img_black, 127 , 255, cv2.CHAIN_APPROX_NONE)
     contours , hierarchy = cv2.findContours(thrash, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
     maxPredictionBlacks = 0
     predictionImage = None
+    counter = 0
     for contour in contours:
         approx = cv2.approxPolyDP(contour, 0.01* cv2.arcLength(contour, True), True)
-        if len(approx) > 2:
+        # if len(approx) > 2:
+        if len(approx) > -1:
             x = approx.ravel()[0]
             y = approx.ravel()[1] - 5
             x,y,w,h = cv2.boundingRect(contour)
-            # cv2.rectangle(img_rgb,(x,y),(x+w,y+h),(0,255,0),2)
+            # cv2.rectangle(img_black,(x,y),(x+w,y+h),(0,255,0),2)
+            # print(f"{counter} Angles:{len(approx)}")
+            # cv2.putText(img_black, str(counter), (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
             crop_img = img_black[y:y+h, x:x+w]
-            for label in suitImage:
-                testImage = suitImage[label]
+            for label in templateObj:
+                testImage = templateObj[label]
                 resized_up = cv2.resize(crop_img, testImage["up_points"], interpolation= cv2.INTER_LINEAR)
                 combinedImage = resized_up+testImage["img_find_black"]
                 # combinedImage=cv2.addWeighted(resized_up, 0.5, testImage["img_find_black"], 0.5, 0)
@@ -62,23 +100,26 @@ for imgPath in testImages:
                     maxPredictionBlacks = number_of_black_pix
                     predictionImage = img[y:y+h, x:x+w]
                     predictionLabel = label
-                    # cv2.imshow("cropped", resized_up)
-                    # cv2.waitKey(0)
-                    # cv2.imshow("cropped", testImage["img_find_black"])
-                    # cv2.waitKey(0)
-                    # cv2.imshow("cropped", combinedImage)
-                    # cv2.waitKey(0)
+            counter = counter + 1
 
 
-
-    print(f"ImagePath:{imgPath} Label:{predictionLabel}" )
-
-    # cv2.imshow("cropped", predictionImage)
-    # # cv2.waitKey(0)
-    # # plt.subplot(1, 1, 1)
-    # # plt.imshow(img_rgb)
-    # # cv2.waitKey(0)
-
-    # plt.show()
+    # img_rgb = cv2.resize(img_black, (400,400), interpolation= cv2.INTER_LINEAR)
+    # cv2.imshow("cropped", img_black)
     # cv2.waitKey(0)
+
+    # x,y,w,h = cv2.boundingRect(contours[counterIndex])
+    # # cv2.rectangle(img_rgb,(x,y),(x+w,y+h),(0,255,0),2)
+
+    # crop_img = img_black_or[y:y+h, x:x+w]
+    # cv2.imshow("cropped", crop_img)
+    # cv2.waitKey(0)
+
+    return predictionLabel
+    
+
+
+for imgPath in testImages:
+    suit = getGuess(imgPath,suitImage)
+    value = getGuess(imgPath,valueImage)
+    print(f"ImagePath:{imgPath} Value:{value} Suit:{suit}")
 
