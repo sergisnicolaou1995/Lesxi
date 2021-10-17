@@ -14,14 +14,10 @@ def readTemplateImage(path, label, templateImages):
         "img": img_black
     }
 
-def getGuess(imgPath, templateImages):
-
-    img = cv2.imread(imgPath)
-
+def getGuess(img, templateImages):
     h, w, _ = img.shape
     # Keep onnly top left of the image to make prediciton more accurate
-    img = img[0:math.ceil(h*0.3), 0:math.ceil(w*0.15)]
-
+    img = img[0:math.ceil(h*0.3), 0:math.ceil(w*0.20)]
     # transform to black and white to count white and black pixels later
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # (thresh, img_black_or) = cv2.threshold(img_gray, 100, 255, cv2.THRESH_BINARY)
@@ -89,8 +85,7 @@ def getGuess(imgPath, templateImages):
 suitTemplateImages = {}
 valueTemmplateImages = {}
 
-BASE_TEMPLATE_IMAGE_FOLDER = "img/"
-BASE_TEST_IMAGE_FOLDER = "testImages/"
+BASE_TEMPLATE_IMAGE_FOLDER = "img"
 
 suitImages = [
     "Club",
@@ -116,13 +111,13 @@ valueImages = [
 ]
 
 for suitImage in suitImages:
-    readTemplateImage(BASE_TEMPLATE_IMAGE_FOLDER + suitImage + ".png", suitImage, suitTemplateImages)
+    readTemplateImage(f"{BASE_TEMPLATE_IMAGE_FOLDER}/{suitImage}.png", suitImage, suitTemplateImages)
 
 for valueImage in valueImages:
-    readTemplateImage(BASE_TEMPLATE_IMAGE_FOLDER + valueImage + ".png", valueImage, valueTemmplateImages)
+    readTemplateImage(f"{BASE_TEMPLATE_IMAGE_FOLDER}/{valueImage}.png", valueImage, valueTemmplateImages)
 
-
-def main() -> int:
+if __name__ == '__main__':
+    BASE_TEST_IMAGE_FOLDER = "testImages"
     testImages = [
         "K_Heart.png",
         "Q_Diamond.png",
@@ -139,8 +134,9 @@ def main() -> int:
     ]
 
     for imgFile in testImages:
-        suitBlack, suitWhite = getGuess(BASE_TEST_IMAGE_FOLDER+imgFile, suitTemplateImages)
-        valueBlack, valueWhite = getGuess(BASE_TEST_IMAGE_FOLDER+imgFile, valueTemmplateImages)
+        img = cv2.imread(f"{BASE_TEST_IMAGE_FOLDER}/{imgFile}")
+        suitBlack, suitWhite = getGuess(img, suitTemplateImages)
+        valueBlack, valueWhite = getGuess(img, valueTemmplateImages)
 
         value = valueWhite
         suit = suitWhite
@@ -154,10 +150,4 @@ def main() -> int:
         else:
             matched = "error"
 
-        print(f"Predicted Value:{value} \nPredicted Suit:{suit}\nFor the image({imgFile}) the result is: {matched}\n")
-        
-    return 0
-
-if __name__ == '__main__':
-    sys.exit(main())
-    
+        print(f"Predicted Value:{value} \nPredicted Suit:{suit}\nFor the image({imgFile}) the result is: {matched}\n")   
