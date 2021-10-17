@@ -29,16 +29,18 @@ def card_separator(img_path):
             continue
         x, y, w, h = cv2.boundingRect(contour)
         area_ratio = ((w * h)/ orig_area)
-        if area_ratio >= 0.01:
-            cropped_image = img[y:y + h, x:x + w]
-            
+        
+        if area_ratio >= 0.01:           
 
-            #approx = cv2.approxPolyDP(
-            #contour, 0.01 * cv2.arcLength(contour, True), True)
-            #cv2.drawContours(img, [contour], 0, (0, 0, 255), 1)
-            yield cropped_image
+            approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
+            if len(approx) <= 10:
+                cropped_image = img[y:y + h, x:x + w]
+                #cv2.drawContours(img, [contour], 0, (0, 0, 255), 1)
+                yield cropped_image
     
-    #cv2.imshow('selected_contours', img)
+    cv2.imshow('selected_contours', img)
+    
+
 
 i = 0
 for c in list(card_separator(testImages[1])):
