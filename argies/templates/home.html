@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Αργίες</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        #container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            padding: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            background-color: #fff;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Αργίες</h1>
+
+        <div class="button-container">
+            <label for="specificYearInput">Έτος:</label>
+            <input type="number" id="specificYearInput">
+            <button id="calculateSpecificYearButton">Μέρες αργιών, συγκεκριμένο έτος</button>
+        </div>
+
+        <div class="button-container">
+            <button id="allYearsButton">Αριθμός αργίων που χάνονται, επόμενα 30 χρόνια</button>
+        </div>
+
+        <div id="resultsContent" style="display: none;">
+            <button id="backButton">Πίσω</button>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Αργία</th>
+                        <th>Μέρα/Ημερομηνία</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const allYearsButton = document.getElementById("allYearsButton");
+        const calculateSpecificYearButton = document.getElementById("calculateSpecificYearButton");
+        const specificYearInput = document.getElementById("specificYearInput");
+        const resultsContent = document.getElementById("resultsContent");
+        const backButton = document.getElementById("backButton");
+        const resultsTable = document.getElementById("resultsTable");
+        const resultsBody = document.getElementById("resultsBody");
+
+        calculateSpecificYearButton.addEventListener("click", async () => {
+            try {
+                const year = specificYearInput.value;
+                const response = await fetch(`/year?year=${year}`);
+                const data = await response.json();
+
+                resultsContent.style.display = "block";
+                allYearsButton.style.display = "none";
+
+                // Clear the existing table body content
+                resultsBody.innerHTML = "";
+
+                // Set custom headings for calculateSpecificYearButton
+                const headings = [
+                    { text: "Αργία", class: "heading-cell" },
+                    { text: "Μέρα/Ημερομηνία", class: "heading-cell" }
+                ];
+
+                populateTable(data, headings);
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        });
+
+        allYearsButton.addEventListener("click", async () => {
+            try {
+                const response = await fetch("/all_years");
+                const data = await response.json();
+
+                resultsContent.style.display = "block";
+                allYearsButton.style.display = "none";
+
+                // Clear the existing table body content
+                resultsBody.innerHTML = "";
+
+                // Set custom headings for allYearsButton
+                const headings = [
+                    { text: "Έτος", class: "heading-cell" },
+                    { text: "Αριθμός αργιών που χάνονται", class: "heading-cell" }
+                ];
+
+                populateTable(data, headings);
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        });
+
+        function populateTable(data, headings) {
+            // Clear the existing table body content
+            resultsBody.innerHTML = "";
+
+            // Create table headers row with custom headings
+            const headersRow = document.createElement("tr");
+            headings.forEach(heading => {
+                const th = document.createElement("th");
+                th.textContent = heading.text;
+                th.className = heading.class;
+                headersRow.appendChild(th);
+            });
+            resultsTable.querySelector("thead").innerHTML = "";
+            resultsTable.querySelector("thead").appendChild(headersRow);
+
+            // Populate the table body with data
+            for (const key in data) {
+                const row = document.createElement("tr");
+
+                // Create a cell for the dictionary key
+                const keyCell = document.createElement("td");
+                keyCell.textContent = key;
+                keyCell.className = "data-cell";
+                row.appendChild(keyCell);
+
+                // Create a cell for the dictionary value
+                const valueCell = document.createElement("td");
+                valueCell.textContent = data[key];
+                valueCell.className = "data-cell";
+                row.appendChild(valueCell);
+
+                resultsBody.appendChild(row);
+            }
+        }
+
+        backButton.addEventListener("click", () => {
+            resultsContent.style.display = "none";
+            allYearsButton.style.display = "block";
+        });
+    </script>
+</body>
+</html>
