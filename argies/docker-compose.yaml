@@ -1,0 +1,21 @@
+# docker-compose.yml
+
+version: '3.8'
+
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c 'mkdir ./logs; gunicorn --capture-output --error-logfile ./logs/logs.txt --bind 0.0.0.0:8040 --worker-class uvicorn.workers.UvicornWorker main:app --timeout 60'
+    restart: always
+    volumes:
+      - .:/app/
+      - logs:/app/logs
+    expose:
+      - 8040
+    ports:
+      - "8040:8040"
+volumes:
+  logs:
