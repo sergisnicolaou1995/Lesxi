@@ -82,6 +82,12 @@
             <button id="allYearsButton">Αριθμός αργίων που χάνονται, επόμενα 30 χρόνια</button>
         </div>
 
+        <div class="button-container">
+            <label for="calendarYearInput">Έτος:</label>
+            <input type="number" id="calendarYearInput">
+            <button id="calculateCalendarButton">Ημερομηνίες για το έτος</button>
+        </div>
+
         <div id="resultsContent" style="display: none;">
             <button id="backButton">Πίσω</button>
             <table id="resultsTable">
@@ -95,6 +101,21 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="resultsCalendarContent" style="display: none;">
+            <button id="backCalendarButton">Πίσω</button>
+            <table id="calendarTable">
+                <thead>
+                    <tr>
+                        <th>Γέφυρες Αργιών</th>
+                        <th>Μακροβιές Σαββατοκύριακα</th>
+                    </tr>
+                </thead>
+                <tbody id="calendarBody">
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
     <script>
@@ -105,6 +126,37 @@
         const backButton = document.getElementById("backButton");
         const resultsTable = document.getElementById("resultsTable");
         const resultsBody = document.getElementById("resultsBody");
+        const calculateCalendarButton = document.getElementById("calculateCalendarButton");
+        const calendarYearInput = document.getElementById("calendarYearInput");
+        const resultsCalendarContent = document.getElementById("resultsCalendarContent");
+        const backCalendarButton = document.getElementById("backCalendarButton");
+        const calendarTable = document.getElementById("calendarTable");
+        const calendarBody = document.getElementById("calendarBody");
+
+
+        calculateCalendarButton.addEventListener("click", async () => {
+            try {
+                const year = calendarYearInput.value;
+                const response = await fetch(`/year/calendar?year=${year}`);
+                const data = await response.json();
+
+                resultsCalendarContent.style.display = "block";
+                allYearsButton.style.display = "none";
+
+                // Clear the existing table body content
+                calendarBody.innerHTML = "";
+
+                // Set custom headings for calculateCalendarButton
+                const headings = [
+                    { text: "Γέφυρες Αργιών", class: "heading-cell" },
+                    { text: "Μακροβιές Σαββατοκύριακα", class: "heading-cell" }
+                ];
+
+                populateCalendarTable(data, headings);
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        });
 
         calculateSpecificYearButton.addEventListener("click", async () => {
             try {
@@ -186,6 +238,39 @@
 
                 resultsBody.appendChild(row);
             }
+        }
+
+        function populateCalendarTable(data, headings) {
+            // Clear the existing table body content
+            calendarBody.innerHTML = "";
+
+            // Create table headers row with custom headings
+            const headersRow = document.createElement("tr");
+            headings.forEach(heading => {
+                const th = document.createElement("th");
+                th.textContent = heading.text;
+                th.className = heading.class;
+                headersRow.appendChild(th);
+            });
+            calendarTable.querySelector("thead").innerHTML = "";
+            calendarTable.querySelector("thead").appendChild(headersRow);
+
+            // Populate the table body with data
+            const row = document.createElement("tr");
+
+            // Create a cell for bridges
+            const bridgesCell = document.createElement("td");
+            bridgesCell.textContent = data.bridges.join(", ");
+            bridgesCell.className = "data-cell";
+            row.appendChild(bridgesCell);
+
+            // Create a cell for long weekends
+            const longWeekendsCell = document.createElement("td");
+            longWeekendsCell.textContent = data.long_weekends.join(", ");
+            longWeekendsCell.className = "data-cell";
+            row.appendChild(longWeekendsCell);
+
+            calendarBody.appendChild(row);
         }
 
         backButton.addEventListener("click", () => {

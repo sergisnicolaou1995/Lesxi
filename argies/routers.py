@@ -7,6 +7,7 @@ import calendar
 import traceback
 from dateutil import easter
 import copy
+from long_weekends.long_weekends import spot_holiday_bridges
 
 
 templates = Jinja2Templates(directory="./templates")
@@ -107,6 +108,45 @@ async def specific_year_endpoint(year: int):
                 days_dict[date_string] = greek_days[day]
 
         return days_dict
+
+    except ValueError as e:
+        log_exception(e)
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        log_exception(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/year/calendar")
+async def specific_year_endpoint(year: int):
+    try:
+        dates_copy = copy.deepcopy(dates)
+        easter_date = easter.easter(year, method=2)
+        easter_string_date = f"{easter_date.day} {easter_date.month}"
+        kathara_deftera = easter_date - timedelta(days=48)
+        kathara_deftera_string = f"{kathara_deftera.day} {kathara_deftera.month}"
+        megali_paraskevi = easter_date - timedelta(days=2)
+        megali_paraskevi_string = f"{megali_paraskevi.day} {megali_paraskevi.month}"
+        deftera_pasxa = easter_date + timedelta(days=1)
+        deftera_pasxa_string = f"{deftera_pasxa.day} {deftera_pasxa.month}"
+        kataklismos = easter_date + timedelta(days=50)
+        kataklismos_string = f"{kataklismos.day} {kataklismos.month}"
+
+        dates_copy["Πάσχα"] = easter_string_date
+        dates_copy["Καθαρά Δευτέρα"] = kathara_deftera_string
+        dates_copy["Μεγάλη Παρασκευή"] = megali_paraskevi_string
+        dates_copy["Δευτέρα Πάσχα"] = deftera_pasxa_string
+        dates_copy["Δευτέρα Κατακλυσμού"] = kataklismos_string
+
+        sorted_dates = sorted(dates_copy.keys(), key=lambda date: custom_sort_key(date, dates_copy))
+        sorted_dates_dict = {date: dates_copy[date] for date in sorted_dates}
+
+        holidays = [datetime.datetime(year, day=int(date.split(" ")[0]), month=int(date.split(" ")[1]))
+                    for date in sorted_dates_dict.values()]
+        start = f'{year}-01-01'
+        end = f'{year}-12-31'
+        bridges, long_weekends = spot_holiday_bridges(start=start, end=end, holidays=holidays)
+        return {"bridges": bridges, "long_weekends": long_weekends}
 
     except ValueError as e:
         log_exception(e)
