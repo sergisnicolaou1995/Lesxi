@@ -70,16 +70,18 @@
 </head>
 <body>
     <div id="container">
-        <h1>Αργίες</h1>
+        <h1>Ημερολόγιο</h1>
 
         <div class="button-container">
-            <label for="specificYearInput">Έτος:</label>
-            <input type="number" id="specificYearInput">
-            <button id="calculateSpecificYearButton">Μέρες αργιών, συγκεκριμένο έτος</button>
+            <label for="specificYearSelect">Έτος:</label>
+            <select id="specificYearSelect" style="width: 120px; padding: 6px; font-size: 16px;">
+                <!-- JavaScript will populate options dynamically -->
+            </select>
+            <button id="calculateSpecificYearButton">Αργίες</button>
         </div>
 
         <div class="button-container">
-            <button id="allYearsButton">Αριθμός αργίων που χάνονται, επόμενα 30 χρόνια</button>
+            <button id="allYearsButton" style="margin: 0 auto;">Αριθμός αργιών που χάνονται, επόμενα 30 χρόνια</button>
         </div>
 
         <div id="resultsContent" style="display: none;">
@@ -106,9 +108,19 @@
         const resultsTable = document.getElementById("resultsTable");
         const resultsBody = document.getElementById("resultsBody");
 
+        const specificYearSelect = document.getElementById("specificYearSelect");
+        const currentYear = new Date().getFullYear();
+
+        for (let year = currentYear; year <= currentYear + 29; year++) {
+            const option = document.createElement("option");
+            option.value = year;
+            option.text = year;
+            specificYearSelect.appendChild(option);
+        }
+
         calculateSpecificYearButton.addEventListener("click", async () => {
             try {
-                const year = specificYearInput.value;
+                const year = specificYearSelect.value;
                 const response = await fetch(`/year?year=${year}`);
                 const data = await response.json();
 
