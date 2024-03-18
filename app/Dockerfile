@@ -12,10 +12,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install dependencies
-COPY ./requirements.txt .
+COPY requirements.txt .
 RUN pip install -r requirements.txt && rm requirements.txt
-
-FROM base AS final
 
 # copy project
 COPY . /app
+
+CMD gunicorn --capture-output --error-logfile ./logs.txt --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker main:app --timeout 60

@@ -1,0 +1,12 @@
+server {
+    listen 80;
+
+    location /argies/ {
+        proxy_pass http://argies_service:8000/;
+    }
+
+    location / {
+        return 200;
+    }
+
+}

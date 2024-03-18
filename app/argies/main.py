@@ -3,14 +3,14 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from routers import router
+from app.argies.routers import router
 
-app = FastAPI()
+argies_app = FastAPI()
 
-app.include_router(router)
+argies_app.include_router(router)
 
 
-@app.exception_handler(RequestValidationError)
+@argies_app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
     logging.error(f"{request}: {exc_str}")
